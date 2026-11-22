@@ -41,6 +41,7 @@ The installer copies into `~/.config/herdr-app` (or `$HERDR_APP_HOME`) and repla
 | `jkr-group` | The group picker popup. Default groups: Work, Clients, Personal. |
 | `jkr-agents` | The agents list used by `jkr-main`. |
 | `jkr-chrome`, `jkr-tabs`, `jkr-menu` | Brand bar and sidebar footer, tab bar, menus. |
-| `jkr-pane`, `jkr-files`, `jkr-changes`, `jkr-workspace-status`, `jkr-new-menu` | Square-cornered copies of Herdr's own mods, used by `jkr-deck`. |
+| `jkr-pane`, `jkr-files`, `jkr-changes`, `jkr-workspace-status` | Square-cornered copies of Herdr's own mods, used by `jkr-deck`. |
+| `jkr-new-menu` | Square-cornered copy of Herdr's new menu, plus a **Neovim** entry that opens `nvim .` in the active space's folder (needs `nvim` on your PATH). |
 
 The shared `jkr-*` mods draw square corners only while `jkr-deck` is shown, so `jkr-main` keeps its rounded look.
