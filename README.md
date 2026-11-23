@@ -42,6 +42,6 @@ The installer copies into `~/.config/herdr-app` (or `$HERDR_APP_HOME`) and repla
 | `jkr-agents` | The agents list used by `jkr-main`. |
 | `jkr-chrome`, `jkr-tabs`, `jkr-menu` | Brand bar and sidebar footer, tab bar, menus. |
 | `jkr-pane`, `jkr-files`, `jkr-changes`, `jkr-workspace-status` | Square-cornered copies of Herdr's own mods, used by `jkr-deck`. |
-| `jkr-new-menu` | Square-cornered copy of Herdr's new menu, plus a **Neovim** entry that opens `nvim .` in the active space's folder (needs `nvim` on your PATH). |
+| `jkr-new-menu` | Square-cornered copy of Herdr's new menu, plus entries that open the folder you are working in (the focused terminal's current folder): **Neovim** and **Lazygit** in a new tab, **VS Code** and **Cursor** in their own window (disabled in remote spaces). Each needs its command on your PATH: `nvim`, `lazygit`, `code`, `cursor`. |
 
 The shared `jkr-*` mods draw square corners only while `jkr-deck` is shown, so `jkr-main` keeps its rounded look.

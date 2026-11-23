@@ -1,6 +1,6 @@
 import { View, div, svg, image } from "gpui-kit";
 import { h_flex, v_flex } from "gpui-base";
-import { theme, spaces, panes, knownAgents, run, openOverlay, closeOverlay, props, window, keys, shared, setShared } from "herdr";
+import { theme, spaces, panes, knownAgents, run, openOverlay, closeOverlay, props, window, keys, shared, setShared, exec, home, notify, focused } from "herdr";
 
 // The last agents each machine reported, shown at once while knownAgents() checks again.
 const KNOWN = "new-menu.agents";
@@ -20,6 +20,24 @@ function shortcut(name) {
     const label = key.length === 1 ? key.toUpperCase() : key[0].toUpperCase() + key.slice(1).toLowerCase();
     return [...Object.keys(names).filter(m => held.has(m)).map(m => names[m]), label].join(mac ? "" : "+");
   }).join(" ");
+}
+
+// space.folder is where the space was created; after a cd the focused pane's live cwd is where you work.
+function currentFolder(space) {
+  const focusedPane = focused();
+  const liveFolder = focusedPane?.space === space.id ? focusedPane.cwd : null;
+  return liveFolder || space.folder || home();
+}
+
+// Desktop editors open their own window, so they run through exec instead of a new tab.
+async function openInDesktopEditor(command, editorName, space) {
+  const folder = currentFolder(space);
+  try {
+    const result = await exec(command, [folder]);
+    if (result.code !== 0) throw new Error(result.stderr.trim() || `exit code ${result.code}`);
+  } catch (error) {
+    notify({ title: `Could not open ${editorName}`, body: String(error.message ?? error), level: "error" });
+  }
 }
 
 export default class NewMenu extends View {
@@ -50,7 +68,7 @@ export default class NewMenu extends View {
     const space = spaces().find(s => s.active);
     const installed = this.agents.filter(a => a.installed);
     const choices = this.failed ? installed : [...installed, ...this.agents.filter(a => !a.installed).slice(0, 2)];
-    return v_flex().min_h(0).w_full().h(Math.min(491, 198 + Math.max(1, choices.length + (this.failed ? 1 : 0)) * 31)).bg(t.popover).p(5).text_size(12.8)
+    return v_flex().min_h(0).w_full().h(Math.min(579, 291 + Math.max(1, choices.length + (this.failed ? 1 : 0)) * 31)).bg(t.popover).p(5).text_size(12.8)
       .id("new-menu").track_focus(this.handle)
       .on_key_down((e) => {
         if (e.modifiers.control || e.modifiers.platform || e.modifiers.alt) return;
@@ -60,7 +78,10 @@ export default class NewMenu extends View {
         run("tab.new", { name: agent.name, space: space?.id, argv: agent.run });
       })
       .child(this.row("terminal", svg("icons/shell.svg").size(14), "Terminal", () => run("tab.new", { space: space?.id }), shortcut("tab.new")))
-      .child(this.row("nvim", svg("icons/nvim.svg").size(14), "Neovim", () => run("tab.new", { name: "nvim", space: space?.id, argv: ["nvim", "."] }), "", Boolean(space)))
+      .child(this.row("nvim", svg("icons/nvim.svg").size(14), "Neovim", () => run("tab.new", { name: "nvim", space: space.id, folder: currentFolder(space), argv: ["nvim", "."] }), "", Boolean(space)))
+      .child(this.row("lazygit", svg("icons/lazygit.svg").size(14), "Lazygit", () => run("tab.new", { name: "lazygit", space: space.id, folder: currentFolder(space), argv: ["lazygit"] }), "", Boolean(space)))
+      .child(this.row("vscode", svg("mods/jkr-new-menu/code.svg").size(14), "Open in VS Code", () => openInDesktopEditor("code", "VS Code", space), "", Boolean(space) && !space.machine))
+      .child(this.row("cursor-editor", svg("icons/cursor.svg").size(14), "Open in Cursor", () => openInDesktopEditor("cursor", "Cursor", space), "", Boolean(space) && !space.machine))
       .child(div().px(9).pt(8).pb(4).text_size(11).text_color(t.dim).child("Start an agent"))
       .child(v_flex().flex_1().min_h(0).overflow_y_scrollbar()
         .children(choices.map((a, i) => this.row(a.key, a.tint ? svg(a.icon).size(14).text_color(t.foreground) : image(a.icon).size(14), a.name,
